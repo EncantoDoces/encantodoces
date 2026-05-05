@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encanto Doces | Cardápio Digital</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-pink: #d38ba0;    
+            --bg-cream: #fdf8f6;       
+            --text-brown: #7a4a4a;     
+            --white: #ffffff;
+            --success-green: #28a745;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--bg-cream); color: #333; padding-bottom: 220px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 15px; }
+
+        header { background: var(--white); padding: 20px 0; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .logo { font-family: 'Dancing Script', cursive; font-size: 2.2rem; color: var(--primary-pink); }
+        
+        .banner { width: 100%; height: 180px; border-radius: 15px; overflow: hidden; margin: 20px 0; }
+        .banner img { width: 100%; height: 100%; object-fit: cover; }
+
+        .category-title { margin: 30px 0 15px; font-size: 1.2rem; color: var(--text-brown); border-left: 5px solid var(--primary-pink); padding-left: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .product-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .product-card { background: var(--white); border-radius: 12px; display: flex; padding: 10px; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); align-items: center; }
+        
+        .product-img img { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; background: #fdf2f4; }
+        .product-info { flex: 1; }
+        .product-info h4 { font-size: 0.95rem; color: #444; margin-bottom: 4px; }
+        .price { color: var(--success-green); font-weight: 700; font-size: 1rem; }
+        
+        .controls { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+        .btn-qty { width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-minus { background: #f0f0f0; color: #666; }
+        .btn-plus { background: var(--primary-pink); color: white; }
+        .qty-val { font-weight: 600; min-width: 20px; text-align: center; }
+
+        .cart-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--white); padding: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1100; display: none; border-radius: 20px 20px 0 0; }
+        .checkout-area { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; font-family: inherit; font-size: 0.9rem; }
+        
+        .btn-send { background: var(--success-green); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; font-size: 1rem; }
+        
+        @media (min-width: 600px) { .product-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Encanto Doces</div>
+    </header>
+
+    <main class="container">
+        <div class="banner">
+            <img src="Encanto.webp" alt="Banner Encanto Doces" onerror="this.src='https://via.placeholder.com/800x200?text=Encanto+Doces'">
+        </div>
+
+        <div id="menu-container"></div>
+    </main>
+
+    <div class="cart-footer" id="cart-box">
+        <div class="checkout-area">
+            <input type="text" id="user-name" placeholder="Seu Nome">
+            <input type="text" id="user-address" placeholder="Endereço Completo">
+            <select id="user-payment">
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão">Cartão</option>
+            </select>
+            <button class="btn-send" onclick="finalizarPedido()">
+                <span>Enviar p/ WhatsApp</span>
+                <span id="total-val">R$ 0,00</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const WHATSAPP_NUM = "558688461483";
+
+        const cardapio = [
+            {
+                categoria: "Doces",
+                itens: [
+                    { n: "Brigadeiro", p: 3.00, img: "brigadeiro.webp" },
+                    { n: "Brigadeiro Napolitano", p: 3.00, img: "bnapolitano.webp" },
+                    { n: "Cajuzinho com Nutella", p: 3.00, img: "cajuzinho.webp" },
+                    { n: "Beijinho", p: 3.00, img: "beijinho.webp" },
+                    { n: "Ninho com Nutella", p: 3.00, img: "ninhonutella.webp" },
+                    { n: "Brigadeiro de Churros", p: 3.00, img: "churros.webp" },
+                    { n: "Delicia de Uva", p: 3.00, img: "uva.webp" },
+                    { n: "Delicia de Morango", p: 3.00, img: "morango.webp" },
+                    { n: "Pastel de Ninho com Nutella", p: 4.00, img: "pastelninho.webp" },
+                    { n: "Coxinha Ninho/Nutella/Morango", p: 6.00, img: "coxinha1.webp" },
+                    { n: "Coxinha Brigadeiro/Morango", p: 6.00, img: "coxinha2.webp" }
+                ]
+            },
+            {
+                categoria: "Salgados",
+                itens: [
+                    { n: "Mini Coxinhas (10 unid)", p: 12.00, img: "minicoxinha.webp" },
+                    { n: "Mini Pastel (10 unid)", p: 12.00, img: "minipastel.webp" }
+                ]
+            },
+            {
+                categoria: "Fatias de Bolo",
+                itens: [
+                    { n: "Fatia Brigadeiro", p: 12.00, img: "fatiabri.webp" },
+                    { n: "Fatia Red Velvet com Ninho", p: 14.00, img: "fatiarv.webp" },
+                    { n: "Fatia Oreo", p: 12.00, img: "fatiaoreo.webp" },
+                    { n: "Fatia Pudim", p: 12.00, img: "fatiapudim.webp" },
+                    { n: "Fatia Prestígio", p: 12.00, img: "fatiapre.webp" }
+                ]
+            },
+            {
+                categoria: "Bolos",
+                itens: [
+                    { n: "Bolo Caroço", p: 15.00, img: "bolocaroco.webp" },
+                    { n: "Bolo Salgado de Queijo", p: 15.00, img: "bolosalgado.webp" }
+                ]
+            },
+            {
+                categoria: "Bolos no Copo",
+                itens: [
+                    { n: "Ferrero Rocher (Copo)", p: 16.00, img: "copoferrero.webp" },
+                    { n: "Brigadeiro (Copo)", p: 12.00, img: "copobri.webp" },
+                    { n: "Paçoca (Copo)", p: 12.00, img: "copopacoca.webp" },
+                    { n: "Oreo (Copo)", p: 12.00, img: "copooreo.webp" },
+                    { n: "Ninho Com Morango (Copo)", p: 14.00, img: "coponinhom.webp" },
+                    { n: "Ninho com Nutella (Copo)", p: 12.00, img: "coponinhon.webp" },
+                    { n: "Cenoura com Brigadeiro (Copo)", p: 12.00, img: "copocenoura.webp" },
+                    { n: "Prestígio (Copo)", p: 12.00, img: "copoprestigio.webp" },
+                    { n: "Red Velvet (Copo)", p: 16.00, img: "coporv.webp" },
+                    { n: "Kinder Bueno (Copo)", p: 16.00, img: "copokinder.webp" },
+                    { n: "Kitkat (Copo)", p: 16.00, img: "copokitkat.webp" }
+                ]
+            },
+            {
+                categoria: "Dindins Gourmets",
+                itens: [
+                    { n: "Dindin Maracujá com Nutella", p: 4.00, img: "dindinmn.webp" },
+                    { n: "Dindin Maracujá", p: 2.50, img: "dindinm.webp" },
+                    { n: "Dindin Limão", p: 2.50, img: "dindinl.webp" },
+                    { n: "Dindin Morango", p: 2.50, img: "dindinmo.webp" },
+                    { n: "Dindin Uva", p: 3.00, img: "dindinu.webp" },
+                    { n: "Dindin Frutas Vermelhas", p: 3.50, img: "dindinfv.webp" },
+                    { n: "Dindin Prestígio", p: 4.50, img: "dindinp.webp" },
+                    { n: "Dindin Açaí com Ninho", p: 4.00, img: "dindina.webp" }
+                ]
+            },
+            {
+                categoria: "Combos",
+                itens: [
+                    { n: "Combo 1", p: 60.00, img: "combo60.webp" },
+                    { n: "Combo 2", p: 80.00, img: "combo2.webp" },
+                    { n: "Combo 3", p: 150.00, img: "combo3.webp" }
+                ]
+            }
+        ];
+
+        let cart = {};
+
+        function init() {
+            const container = document.getElementById('menu-container');
+            cardapio.forEach(cat => {
+                let section = `<h3 class="category-title">${cat.categoria}</h3><div class="product-grid">`;
+                cat.itens.forEach(item => {
+                    section += `
+                    <div class="product-card">
+                        <div class="product-img"><img src="${item.img}" onerror="this.src='https://via.placeholder.com/70/eee/7a4a4a?text=Doce'"></div>
+                        <div class="product-info">
+                            <h4>${item.n}</h4>
+                            <span class="price">R$ ${item.p.toFixed(2).replace('.',',')}</span>
+                            <div class="controls">
+                                <button class="btn-qty btn-minus" onclick="updateCart('${item.n}', ${item.p}, -1)">-</button>
+                                <span class="qty-val" id="q-${item.n}">0</span>
+                                <button class="btn-qty btn-plus" onclick="updateCart('${item.n}', ${item.p}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML += section + '</div>';
+            });
+        }
+
+        function updateCart(name, price, change) {
+            if (!cart[name]) cart[name] = { qty: 0, price: price };
+            cart[name].qty += change;
+            if (cart[name].qty <= 0) { cart[name].qty = 0; delete cart[name]; }
+            document.getElementById(`q-${name}`).innerText = cart[name] ? cart[name].qty : 0;
+            renderCart();
+        }
+
+        function renderCart() {
+            let total = 0; let count = 0;
+            Object.values(cart).forEach(i => { total += (i.qty * i.price); count += i.qty; });
+            document.getElementById('total-val').innerText = `R$ ${total.toFixed(2).replace('.',',')}`;
+            document.getElementById('cart-box').style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function finalizarPedido() {
+            const nome = document.getElementById('user-name').value;
+            const endereco = document.getElementById('user-address').value;
+            const pag = document.getElementById('user-payment').value;
+            if (!nome || !endereco) return alert("Por favor, preencha seu nome e endereço!");
+
+            let msg = `*NOVO PEDIDO - ENCANTO DOCES*\n\n*Cliente:* ${nome}\n*Endereço:* ${endereco}\n*Pagamento:* ${pag}\n\n*ITENS:*\n`;
+            let totalGeral = 0;
+            for (const [item, info] of Object.entries(cart)) {
+                msg += `✅ ${info.qty}x ${item} - R$ ${(info.qty * info.price).toFixed(2)}\n`;
+                totalGeral += (info.qty * info.price);
+            }
+            msg += `\n*TOTAL: R$ ${totalGeral.toFixed(2)}*`;
+            window.open(`https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        init();
+    </script>
+</body>
+</html>
